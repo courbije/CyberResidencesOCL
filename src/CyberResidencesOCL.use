@@ -5,6 +5,7 @@
 model CyberResidences
 
 
+
 enum Category {
     economy,
     standard,
