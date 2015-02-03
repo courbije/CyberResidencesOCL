@@ -98,6 +98,9 @@ end
 associationclass Rent between
 Bedroom[1..*] role rentedBedrooms
 Tenant[0..1] role tenant
+attributes
+discount : Real --@derived
+rate : Real --@derived
 end
 
 association occupiedRoom
@@ -160,24 +163,26 @@ constraints
 
 
 -------------------------------------------------------------------------------
---                                 adultMarried
+-- DONE                                 adultMarried
 -------------------------------------------------------------------------------
 -- Only adult married.
 -- Easy. Use 'implies'
+-- To be registered as married, resident must be adult.
 
--- context Resident inv adultMarried:
-    -- To be registered as married, resident must be adult.
+context Resident inv adultMarried:
+    self.consort->notEmpty() implies
+        self.age >= 18
 
 
 -------------------------------------------------------------------------------
---                                 adultTenant
+-- DONE                                adultTenant
 -------------------------------------------------------------------------------
 -- Tenants are adults.
 -- Easy
+-- The minimal age to rent a bedroom is 18 years old.
 
-	context Tenant inv adultTenant:
-		self.age>17
-   -- The minimal age to rent a bedroom is 18 years old.
+context Tenant inv adultTenant:
+    self.age >= 18
 
 
 -------------------------------------------------------------------------------
@@ -192,17 +197,19 @@ constraints
 
 
 -------------------------------------------------------------------------------
---                                 atLeastABed
+-- DONE                                atLeastABed
 -------------------------------------------------------------------------------
 -- At least one bed for useful bedrooms.
 -- Easy. Use implies.
+-- Bedrooms that are not out of order must have at least one bed.
 
--- context Bedroom inv atLeastABed:
-    -- Bedrooms that are not out of order must have at least one bed.
+context Bedroom inv atLeastABed:
+    self.isOutOfOrder = false implies
+        self.nbOfSingleBeds >= 1 or self.nbOfDoubleBeds >= 1
 
 
 -------------------------------------------------------------------------------
---                               atLeastOneAdult
+--  ???                             atLeastOneAdult
 -------------------------------------------------------------------------------
 -- At least one adult per room.
 -- Easy. Use 'implies'
@@ -212,14 +219,15 @@ constraints
 
 
 -------------------------------------------------------------------------------
---                               childNonSmoking
+-- DONE                              childNonSmoking
 -------------------------------------------------------------------------------
 -- Non smoking child.
 -- Easy
+-- Children are always declared as non smoker.
 
-
--- context Resident inv childNonSmoking:
-    -- Children are always declared as non smoker.
+context Resident inv childNonSmoking:
+    self.age < 18 implies
+        self.isSmoker = false
 
 
 -------------------------------------------------------------------------------
@@ -235,14 +243,14 @@ constraints
 
 
 -------------------------------------------------------------------------------
---                              cumulatedDiscounts
+-- DONE                             cumulatedDiscounts
 -------------------------------------------------------------------------------
 -- Limit of cumulated discounts.
 -- Easy. Use 'sum'
+-- No room will have more that 70% of dicounts cumulated.
 
--- context Rent inv cumulatedDiscounts:
-    -- No room will have more that 70% of dicounts cumulated.
-
+context Rent inv cumulatedDiscounts:
+    self.discounts.percentage->sum() <= 70
 
 -------------------------------------------------------------------------------
 --                                deriveAvgRate
@@ -257,61 +265,62 @@ constraints
 
 
 -------------------------------------------------------------------------------
---                                deriveDiscount
+-- DONE                               deriveDiscount
 -------------------------------------------------------------------------------
 -- Derivation of the attribute discount.
 -- Easy
+-- The discount for a rent, is the rate of the bedroom multiplied
+-- by the sum of percentages of all discounts.
 
--- context Rent inv deriveDiscount:
-    -- The discount for a rent, is the rate of the bedroom multiplied
-    -- by the sum of percentages of all discounts.
-
+context Rent inv deriveDiscount:
+    self.discount = self.rentedBedrooms.rate * self.discounts.percentage->sum()
 
 -------------------------------------------------------------------------------
---                                 deriveFloor
+-- DONE                                deriveFloor
 -------------------------------------------------------------------------------
 -- Derivation of the attribute floor.
 -- Easy
+-- The floor number correspond to the first digits of the room
+-- number, where the last two digits are removed. For instance the
+-- room 634 is at the floor 6.
 
--- context Room inv deriveFloor:
-    -- The floor number correspond to the first digits of the room
-    -- number, where the last two digits are removed. For instance the
-    -- room 634 is at the floor 6.
-
+context Room inv deriveFloor:
+    self.floor = self.number div 100
 
 -------------------------------------------------------------------------------
---                             deriveIsOnTheLanding
+-- DONE                            deriveIsOnTheLanding
 -------------------------------------------------------------------------------
 -- Derivation of isOnTheLanding attribute.
 -- Easy
+-- A bathroom is said to be on the landing if it is not in a
+-- bedroom.
 
--- context Bathroom inv deriveIsOnTheLanding:
-    -- A bathroom is said to be on the landing if it is not in a
-    -- bedroom.
-
+context Bathroom inv deriveIsOnTheLanding:
+    self.isOnTheLanding implies
+        self.bedroom->isEmpty()
 
 -------------------------------------------------------------------------------
---                            deriveMaxNbOfFreeUnits
+-- ???                           deriveMaxNbOfFreeUnits
 -------------------------------------------------------------------------------
 -- Derivation of maxNbOfFreeUnits attribute.
 -- Easy
+-- The maximum number of free units is equal to the maximum number
+-- of places in beds of all rooms of the residence.
 
--- context Residence inv deriveMaxNbOfFreeUnits:
-    -- The maximum number of free units is equal to the maximum number
-    -- of places in beds of all rooms of the residence.
-
+context Residence inv deriveMaxNbOfFreeUnits:
+    self.maxNbOfFreeUnits = self.bedrooms().nbOfSingleBeds->sum() + self.bedrooms().nbOfDoubleBeds->sum() * 2
 
 -------------------------------------------------------------------------------
---                               deriveNbOfUnits
+-- ???                              deriveNbOfUnits
 -------------------------------------------------------------------------------
 -- Derivation of nbOfUnits attribute.
 -- Easy
+-- The number of units of a bedroom is the maximum number of
+-- people that can fit within the bedroom assuming that all places
+-- in all beds are full.
 
--- context Bedroom inv deriveNbOfUnits:
-    -- The number of units of a bedroom is the maximum number of
-    -- people that can fit within the bedroom assuming that all places
-    -- in all beds are full.
-
+context Bedroom inv deriveNbOfUnits:
+    self.nbOfUnits = self.nbOfSingleBeds + self.nbOfDoubleBeds * 2
 
 -------------------------------------------------------------------------------
 --                                derivePaidRate
@@ -328,15 +337,15 @@ constraints
 
 
 -------------------------------------------------------------------------------
---                                  deriveRate
+-- DONE                                 deriveRate
 -------------------------------------------------------------------------------
 -- Derivation of the attribute rate.
 -- Easy
+-- The rate of a rent corresponds to the regular rate for the room
+-- minus the discount.
 
--- context Rent inv deriveRate:
-    -- The rate of a rent corresponds to the regular rate for the room
-    -- minus the discount.
-
+context Rent inv deriveRate:
+    self.rate = self.rentedBedrooms.rate - self.discount
 
 -------------------------------------------------------------------------------
 --                               domainPercentage
