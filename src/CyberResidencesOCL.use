@@ -32,10 +32,10 @@ operations
     bedrooms() : Set(Bedroom) =
         rooms->select(oclIsKindOf(Bedroom))->oclAsType(Set(Bedroom))
     -- Set of useful bedrooms.
-    usefulBedrooms() : Set(Bedroom)
+    usefulBedrooms() : Set(Bedroom) =
         bedrooms()->select(not isOutOfOrder)
     -- Set of residence bathrooms
-    bathrooms() : Set(Bathroom)
+    bathrooms() : Set(Bathroom) =
         rooms->select(oclIsKindOf(Bathroom))->oclAsType(Set(Bathroom))
 end
 
@@ -47,12 +47,82 @@ attributes
     isOutOfOrder : Boolean
 end
 
+class Bedroom < Room
+attributes
+    nbOfSingleBeds : Integer
+    nbOfDoubleBeds : Integer
+    rate : Real
+	isNonSmoking : Boolean
+	nbOfUnits : Integer --@derived
+end
+
 
 class Bathroom < Room
 attributes
     isOnTheLanding : Boolean
 end
 
+class Person
+attributes
+    name : String
+	age : Integer
+	gender : Gender
+end
+
+class Resident < Person
+attributes
+	isSmoker : Boolean
+end
+
+class Tenant < Resident
+attributes
+	paidRate : Real --@derived
+end
+
+class Discount
+attributes
+	percentage : Integer
+	label : String
+end
+
+composition ContainsRooms between
+Residence[1] role residence
+Room[*] role rooms
+end
+
+composition HasDiscounts between
+Rent[1] role rent
+Discount[*] role discounts
+end
+
+associationclass Rent between
+Bedroom[1..*] role rentedBedrooms
+Tenant[0..1] role tenant
+end
+
+association occupiedRoom
+between
+  Bedroom[1] role IsOccupiedBy
+  Resident[*] role occupants
+end
+
+association IsInBedroom
+between
+  Bathroom[0..3] role bathrooms
+  Bedroom[0..1] role bedroom
+end
+
+association IsMarriedWith
+between
+  Resident[0..1]
+  Resident[0..1] role consort
+end
+
+association IsTutoredBy
+between
+  Resident[*] role tutored
+  Resident[0..2] role tutors
+end
 -- TODO
 
 -- For association classes use the following syntax
@@ -105,7 +175,8 @@ constraints
 -- Tenants are adults.
 -- Easy
 
--- context Tenant inv adultTenant:
+--	context Tenant inv adultTenant:
+--		self.age>17
     -- The minimal age to rent a bedroom is 18 years old.
 
 
@@ -435,8 +506,11 @@ constraints
 -- Same number if private.
 -- Easy. Use 'implies'.
 
--- context Bathroom inv sameNumberIfPrivate:
-    -- All bathrooms that are not on the landing, that is that are
+--	context Bathroom inv sameNumberIfPrivate:
+--			self.isOnTheLanding= false implies
+--				self.bedroom.number=self.number
+
+    -- All bathrooms that are not on the landing, that are
     -- private to a bedroom, have the same number of room as this
     -- bedroom.
 
@@ -483,7 +557,8 @@ constraints
 -- No smoking is prestige.
 -- Easy
 
--- context Bedroom inv smokingPrestigePolicy:
+	context Bedroom inv smokingPrestigePolicy:
+		
     -- There are no smoking rooms at all in residence of prestige.
 
 
@@ -503,7 +578,8 @@ constraints
 -- Tutors are adults.
 -- Easy
 
--- context Resident inv tutorAdult:
+--	context Resident inv tutorAdult:
+--		self.age>17
     -- A resident can not be the tutor of another resident if he or
     -- she is not an adult.
 
@@ -528,4 +604,3 @@ constraints
 
 -- context Residence inv uniqueNumberApartForPrivateBathroom:
     -- All rooms have a distinct number, except private bathrooms.
-
