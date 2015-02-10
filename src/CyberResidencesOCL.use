@@ -104,9 +104,9 @@ discount : Real --@derived
 rate : Real --@derived
 end
 
-association occupiedRoom
+association IsOccupiedBy
 between
-  Bedroom[1] role IsOccupiedBy
+  Bedroom[1] role occupiedRoom
   Resident[*] role occupants
 end
 
@@ -127,22 +127,12 @@ between
   Resident[*] role tutored
   Resident[0..2] role tutors
 end
--- TODO
-
--- For association classes use the following syntax
--- (see documentation for more details)
--- associationclass ... between
---     ...[...] role ...
---     ...[...] role ...
--- attributes
---     ...
--- end
 
 
 constraints
 
 -------------------------------------------------------------------------------
---                               aboooConditions
+-- TODO                              aboooConditions
 -------------------------------------------------------------------------------
 -- Conditions for granting a discount "All Bathrooms Out Of Order" (ABOOO).
 -- Note Easy. Use 'one'. Should world with 'xxxPercentage'
@@ -154,7 +144,7 @@ constraints
 
 
 -------------------------------------------------------------------------------
---                               aboooPercentage
+-- TODO                               aboooPercentage
 -------------------------------------------------------------------------------
 -- Percentage of "ABOOO" discount according to residence category.
 -- Not Easy. Should work with the corresponding invariant 'xxxConditions'
@@ -187,14 +177,16 @@ context Tenant inv adultTenant:
 
 
 -------------------------------------------------------------------------------
---                             allPrestigeBathrooms
+-- DONE                            allPrestigeBathrooms
 -------------------------------------------------------------------------------
 -- Invariant about all bathrooms for 'prestige' residence.
 -- Medium. use 'implies'.
+-- Residences of category prestige have in each bedroom at least
+-- the same number of bathroom that the number of beds.
 
--- context Residence inv allPrestigeBathrooms:
-    -- Residences of category prestige have in each bedroom at least
-    -- the same number of bathroom that the number of beds.
+context Residence inv allPrestigeBathrooms:
+   self.category = Category::prestige implies self.bedrooms()->forAll(x | x.bathrooms->size()
+ = (x.nbOfSingleBeds + x.nbOfDoubleBeds))
 
 
 -------------------------------------------------------------------------------
@@ -210,14 +202,14 @@ context Bedroom inv atLeastABed:
 
 
 -------------------------------------------------------------------------------
---  ???                             atLeastOneAdult
+--  DONE                            atLeastOneAdult
 -------------------------------------------------------------------------------
 -- At least one adult per room.
 -- Easy. Use 'implies'
+-- At least one adult must be presented in all occupied rooms.
 
--- context Bedroom inv atLeastOneAdult:
-    -- At least one adult must be presented in all occupied rooms.
-
+context Bedroom inv atLeastOneAdult:
+self.occupants->size() <> 0 implies self.occupants->select(age>=18)->notEmpty()
 
 -------------------------------------------------------------------------------
 -- DONE                              childNonSmoking
@@ -232,12 +224,13 @@ context Resident inv childNonSmoking:
 
 
 -------------------------------------------------------------------------------
---                                 childTutored
+-- DONE                                childTutored
 -------------------------------------------------------------------------------
 -- Child tutored.
 -- Medium
 
--- context Resident inv childTutored:
+context Resident inv childTutored:
+   self.age < 18 and self.occupiedRoom.residence.category <> Category::prestige implies self.tutors->notEmpty()
     -- Resident that are less than 18 years old must have at least one
     -- tutor, apart in prestige residences where this rule does not
     -- apply.
@@ -254,16 +247,17 @@ context Rent inv cumulatedDiscounts:
     self.discounts.percentage->sum() <= 70
 
 -------------------------------------------------------------------------------
---                                deriveAvgRate
+-- TOCHECK                               deriveAvgRate
 -------------------------------------------------------------------------------
 -- Derivation of the avgRate attribute.
 -- Medium
+-- The average rate of a residence is the total revenue of the
+-- residence divided by the number of occupants. Tutored residents
+-- do not count in this rule.
 
--- context Residence inv deriveAvgRate:
-    -- The average rate of a residence is the total revenue of the
-    -- residence divided by the number of occupants. Tutored residents
-    -- do not count in this rule.
 
+context Residence inv deriveAvgRate:
+   self.avgRate = self.bedrooms().rate->sum() / self.bedrooms().occupants->select(tutors->notEmpty())->size()
 
 -------------------------------------------------------------------------------
 -- DONE                               deriveDiscount
@@ -301,7 +295,7 @@ context Bathroom inv deriveIsOnTheLanding:
         self.bedroom->isEmpty()
 
 -------------------------------------------------------------------------------
--- ???                           deriveMaxNbOfFreeUnits
+-- TOCHECK                           deriveMaxNbOfFreeUnits
 -------------------------------------------------------------------------------
 -- Derivation of maxNbOfFreeUnits attribute.
 -- Easy
@@ -312,7 +306,7 @@ context Residence inv deriveMaxNbOfFreeUnits:
     self.maxNbOfFreeUnits = self.bedrooms().nbOfSingleBeds->sum() + self.bedrooms().nbOfDoubleBeds->sum() * 2
 
 -------------------------------------------------------------------------------
--- ???                              deriveNbOfUnits
+-- DONE                              deriveNbOfUnits
 -------------------------------------------------------------------------------
 -- Derivation of nbOfUnits attribute.
 -- Easy
@@ -324,7 +318,7 @@ context Bedroom inv deriveNbOfUnits:
     self.nbOfUnits = self.nbOfSingleBeds + self.nbOfDoubleBeds * 2
 
 -------------------------------------------------------------------------------
---                                derivePaidRate
+-- TODO                               derivePaidRate
 -------------------------------------------------------------------------------
 -- Derivation of the attribute paidRate.
 -- Not Easy. Use 'if ... then ... else ... endif'   and
@@ -349,70 +343,76 @@ context Rent inv deriveRate:
     self.rate = self.rentedBedrooms.rate - self.discount
 
 -------------------------------------------------------------------------------
---                               domainPercentage
+-- DONE                              domainPercentage
 -------------------------------------------------------------------------------
 -- Domain of percentage attribute.
 -- Easy
+-- The percentage is a value between 1 and 100.
 
--- context Discount inv domainPercentage:
-    -- The percentage is a value between 1 and 100.
+context Discount inv domainPercentage:
+    self.percentage<=100 and self.percentage>=1
+
 
 
 -------------------------------------------------------------------------------
---                          enoughBathroomsInPrestige
+-- DONE                         enoughBathroomsInPrestige
 -------------------------------------------------------------------------------
 -- At least as many bathrooms than beds for prestige residence.
 -- Easy. Use implies.
+-- In a prestige residence, the number of private bathrooms is at
+-- least the same as the number of beds in each bedroom.
 
--- context Bedroom inv enoughBathroomsInPrestige:
-    -- In a prestige residence, the number of private bathrooms is at
-    -- least the same as the number of beds in each bedroom.
+context Bedroom inv enoughBathroomsInPrestige:
+   self.residence.category= Category::prestige implies self.residence.bathrooms()->size()>=(self.nbOfSingleBeds+nbOfDoubleBeds)
 
 
 -------------------------------------------------------------------------------
---                            floorBetweenMinAndMax
+-- DONE                           floorBetweenMinAndMax
 -------------------------------------------------------------------------------
 -- Floor between minimum and maximum floors.
 -- Easy
+-- The floor of a room is between the minium and maximum floor of
+-- the residence.
 
--- context Room inv floorBetweenMinAndMax:
-    -- The floor of a room is between the minium and maximum floor of
-    -- the residence.
-
+context Room inv floorBetweenMinAndMax:
+   self.floor >= self.residence.floorMin and self.floor <= self.residence.floorMax
+   
 
 -------------------------------------------------------------------------------
---                                  floorOrder
+-- DONE                                 floorOrder
 -------------------------------------------------------------------------------
 -- Order between floorMin and floorMax attributes.
 -- Easy
+-- The maximum floor is at higher or at the same level that the
+-- minimum floor of the residence.
 
--- context Residence inv floorOrder:
-    -- The maximum floor is at higher or at the same level that the
-    -- minimum floor of the residence.
+context Residence inv floorOrder:
+    self.floorMax>=self.floorMin
 
 
 -------------------------------------------------------------------------------
---                                 labelUnique
+-- DONE                                labelUnique
 -------------------------------------------------------------------------------
 -- Uniqueness of labels with respect to rents.
 -- Easy. Use 'unique'
+-- All discounts associated to a rent have distinct labels.
 
--- context Rent inv labelUnique:
-    -- All discounts associated to a rent have distinct labels.
+context Rent inv labelUnique:
+    self.discounts->isUnique(label)
 
 
 -------------------------------------------------------------------------------
---                           marriageAntiReflexivity
+-- DONE                          marriageAntiReflexivity
 -------------------------------------------------------------------------------
 -- Anti-reflexivity of marriage relationship.
 -- Easy
-
--- context Resident inv marriageAntiReflexivity:
-    -- A resident cannot mary with himself or herself.
-
+-- A resident cannot mary with himself or herself.
+    
+context Resident inv marriageAntiReflexivity:
+   self.consort <> self
 
 -------------------------------------------------------------------------------
---                             marriageInSameGroup
+-- TODO                            marriageInSameGroup
 -------------------------------------------------------------------------------
 -- Consorts in the same group.
 -- Medium
@@ -423,31 +423,31 @@ context Rent inv deriveRate:
 
 
 -------------------------------------------------------------------------------
---                               marriageSymmetry
+-- DONE                              marriageSymmetry
 -------------------------------------------------------------------------------
 -- Symmetry of marriage relationship.
 -- Easy
 
 	context Resident inv marriageSymmetry:
-		self.consort->notEmpty() implies consort.consort->notEmpty()
+		self.consort->notEmpty() implies self = self.consort.consort
     -- If a resident is declared to be the consort of another
     -- resident, then the opposite is true as well.
 
 
 -------------------------------------------------------------------------------
---                              noBedroomOverload
+-- DONE                             noBedroomOverload
 -------------------------------------------------------------------------------
 -- No bedroom overloaded.
 -- Medium
-
--- context Bedroom inv noBedroomOverload:
     -- There must be no more people in a bedroom that the number of
     -- units of this bedroom. Children up to 3 years old are not
     -- counted in this rule.
 
+context Bedroom inv noBedroomOverload:
+self.nbOfUnits <= self.occupants->select(age<=3)->size()
 
 -------------------------------------------------------------------------------
---                            noEmptyRentedBedrooms
+-- DONE                           noEmptyRentedBedrooms
 -------------------------------------------------------------------------------
 -- Rented bedrooms not empty.
 -- Easy. Use 'implies'
@@ -459,7 +459,7 @@ context Rent inv deriveRate:
 
 
 -------------------------------------------------------------------------------
---                                  noSquaters
+-- DONE                                 noSquaters
 -------------------------------------------------------------------------------
 -- Nobody in rooms not rented.
 -- Easy. Use 'implies'
@@ -472,7 +472,7 @@ context Rent inv deriveRate:
 
 
 -------------------------------------------------------------------------------
---                               noTutorForAdults
+-- DONE                              noTutorForAdults
 -------------------------------------------------------------------------------
 -- No tutor for adults.
 -- Easy
@@ -484,7 +484,7 @@ context Rent inv deriveRate:
 
 
 -------------------------------------------------------------------------------
---                             oooBedroomsNotRented
+-- DONE                            oooBedroomsNotRented
 -------------------------------------------------------------------------------
 -- No rental of Out Of Order bedrooms.
 -- Easy
@@ -496,31 +496,31 @@ context Rent inv deriveRate:
 
 
 -------------------------------------------------------------------------------
---                                oooIfPrestige
+-- DONE                               oooIfPrestige
 -------------------------------------------------------------------------------
 -- Out of order bathroom implications if prestige. 
 -- Medium. Use 'implies'
-
--- context Bathroom inv oooIfPrestige:
     -- In prestige residences, it is not acceptable to rent bedrooms
     -- with bathrooms that are out of order. So if a bathrom is marked
     -- as out of order, the corresponding bedroom is also marked as
     -- out of order.
 
+context Bathroom inv oooIfPrestige:
+   self.residence.category = Category::prestige and self.isOutOfOrder implies self.bedroom->notEmpty() and self.bedroom.isOutOfOrder
 
 -------------------------------------------------------------------------------
---                              rentInOneResidence
+-- TOCHECK                             rentInOneResidence
 -------------------------------------------------------------------------------
 -- Medium. Should be rather short.
 -- <Enter note text here>
-
--- context Tenant inv rentInOneResidence:
     -- For a given tenant, all rented bedrooms are in the same
     -- residence.
 
+context Tenant inv rentInOneResidence:
+   self.rentedBedrooms->forall(rb1 | self.rentedBedrooms->forall(rb2 | rb2.residence = rb1.residence))
 
 -------------------------------------------------------------------------------
---                             sameNumberIfPrivate
+-- DONE                            sameNumberIfPrivate
 -------------------------------------------------------------------------------
 -- Same number if private.
 -- Easy. Use 'implies'.
@@ -535,7 +535,7 @@ context Rent inv deriveRate:
 
 
 -------------------------------------------------------------------------------
---                               sboooConditions
+-- TODO                              sboooConditions
 -------------------------------------------------------------------------------
 -- Conditions for granting a discount "Some Bathrooms Out Of Order" (SBOOO).
 -- Not Easy. Use 'one'. Should world with 'xxxPercentage'
@@ -549,7 +549,7 @@ context Rent inv deriveRate:
 
 
 -------------------------------------------------------------------------------
---                               sboooPercentage
+-- TODO                              sboooPercentage
 -------------------------------------------------------------------------------
 -- Percentage of "SBOOO" discount according to residence category.
 -- Not Easy. Should work with the corresponding invariant 'xxxConditions'
@@ -560,7 +560,7 @@ context Rent inv deriveRate:
 
 
 -------------------------------------------------------------------------------
---                             smokingPremiumPolicy
+-- TODO                            smokingPremiumPolicy
 -------------------------------------------------------------------------------
 -- Smoking policy for premium residences.
 -- Not easy
@@ -571,18 +571,18 @@ context Rent inv deriveRate:
 
 
 -------------------------------------------------------------------------------
---                            smokingPrestigePolicy
+-- DONE                           smokingPrestigePolicy
 -------------------------------------------------------------------------------
 -- No smoking is prestige.
 -- Easy
+-- There are no smoking rooms at all in residence of prestige.
+context Bedroom inv smokingPrestigePolicy:
+   self.residence.category = Category::prestige implies self.isNonSmoking 		
 
-	--context Bedroom inv smokingPrestigePolicy:
-		
-    -- There are no smoking rooms at all in residence of prestige.
 
 
 -------------------------------------------------------------------------------
---                              tenantInRentedRoom
+-- TODO                             tenantInRentedRoom
 -------------------------------------------------------------------------------
 -- Room occupied by the tenant.
 -- Medium. 
@@ -592,19 +592,19 @@ context Rent inv deriveRate:
 
 
 -------------------------------------------------------------------------------
---                                  tutorAdult
+-- DONE                                 tutorAdult
 -------------------------------------------------------------------------------
 -- Tutors are adults.
 -- Easy
+-- A resident can not be the tutor of another resident if he or
+-- she is not an adult.
 
 	context Resident inv tutorAdult:
 		self.age>17
-    -- A resident can not be the tutor of another resident if he or
-    -- she is not an adult.
 
 
 -------------------------------------------------------------------------------
---                               tutorInSameGroup
+-- TODO                              tutorInSameGroup
 -------------------------------------------------------------------------------
 -- Tutors and tutored in one group.
 -- Medium
@@ -616,7 +616,7 @@ context Rent inv deriveRate:
 
 
 -------------------------------------------------------------------------------
---                     uniqueNumberApartForPrivateBathroom
+-- TODO                    uniqueNumberApartForPrivateBathroom
 -------------------------------------------------------------------------------
 -- Invariant on room numbering.
 -- Medium
