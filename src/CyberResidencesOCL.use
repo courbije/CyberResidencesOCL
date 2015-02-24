@@ -155,7 +155,7 @@ context Discount inv aboooPercentage:
 
 
 -------------------------------------------------------------------------------
--- DONE                                 adultMarried
+-- DONE OKKO                                adultMarried
 -------------------------------------------------------------------------------
 -- Only adult married.
 -- Easy. Use 'implies'
@@ -167,7 +167,7 @@ context Resident inv adultMarried:
 
 
 -------------------------------------------------------------------------------
--- DONE                                adultTenant
+-- DONE OKKO                                adultTenant
 -------------------------------------------------------------------------------
 -- Tenants are adults.
 -- Easy
@@ -178,7 +178,7 @@ context Tenant inv adultTenant:
 
 
 -------------------------------------------------------------------------------
--- DONE                            allPrestigeBathrooms
+-- DONE OKKO                           allPrestigeBathrooms
 -------------------------------------------------------------------------------
 -- Invariant about all bathrooms for 'prestige' residence.
 -- Medium. use 'implies'.
@@ -187,11 +187,11 @@ context Tenant inv adultTenant:
 
 context Residence inv allPrestigeBathrooms:
    self.category = Category::prestige implies self.bedrooms()->forAll(x | x.bathrooms->size()
- = (x.nbOfSingleBeds + x.nbOfDoubleBeds))
+ >= (x.nbOfSingleBeds + x.nbOfDoubleBeds))
 
 
 -------------------------------------------------------------------------------
--- DONE                                atLeastABed
+-- DONE OKKO                                atLeastABed
 -------------------------------------------------------------------------------
 -- At least one bed for useful bedrooms.
 -- Easy. Use implies.
@@ -203,7 +203,7 @@ context Bedroom inv atLeastABed:
 
 
 -------------------------------------------------------------------------------
---  DONE                            atLeastOneAdult
+--  DONE OKKO                           atLeastOneAdult
 -------------------------------------------------------------------------------
 -- At least one adult per room.
 -- Easy. Use 'implies'
@@ -213,7 +213,7 @@ context Bedroom inv atLeastOneAdult:
 self.occupants->size() <> 0 implies self.occupants->select(age>=18)->notEmpty()
 
 -------------------------------------------------------------------------------
--- DONE                              childNonSmoking
+-- DONE OKKO                             childNonSmoking
 -------------------------------------------------------------------------------
 -- Non smoking child.
 -- Easy
@@ -225,7 +225,7 @@ context Resident inv childNonSmoking:
 
 
 -------------------------------------------------------------------------------
--- DONE                                childTutored
+-- DONE OKKO                               childTutored
 -------------------------------------------------------------------------------
 -- Child tutored.
 -- Medium
@@ -238,7 +238,7 @@ context Resident inv childTutored:
 
 
 -------------------------------------------------------------------------------
--- DONE                             cumulatedDiscounts
+-- DONE OKKO                            cumulatedDiscounts
 -------------------------------------------------------------------------------
 -- Limit of cumulated discounts.
 -- Easy. Use 'sum'
@@ -248,7 +248,7 @@ context Rent inv cumulatedDiscounts:
     self.discounts.percentage->sum() <= 70
 
 -------------------------------------------------------------------------------
--- TOCHECK                               deriveAvgRate
+-- DONE                               deriveAvgRate
 -------------------------------------------------------------------------------
 -- Derivation of the avgRate attribute.
 -- Medium
@@ -261,7 +261,7 @@ context Residence inv deriveAvgRate:
    self.avgRate = self.bedrooms().rate->sum() / self.bedrooms().occupants->select(tutors->notEmpty())->size()
 
 -------------------------------------------------------------------------------
--- DONE                               deriveDiscount
+-- DONE OKKO                             deriveDiscount
 -------------------------------------------------------------------------------
 -- Derivation of the attribute discount.
 -- Easy
@@ -269,10 +269,10 @@ context Residence inv deriveAvgRate:
 -- by the sum of percentages of all discounts.
 
 context Rent inv deriveDiscount:
-    self.discount = self.rentedBedrooms.rate * self.discounts.percentage->sum()
+    self.discount = self.rentedBedrooms.rate * self.discounts.percentage->sum() / 100.0
 
 -------------------------------------------------------------------------------
--- DONE                                deriveFloor
+-- DONE OKKO                                deriveFloor
 -------------------------------------------------------------------------------
 -- Derivation of the attribute floor.
 -- Easy
@@ -284,7 +284,7 @@ context Room inv deriveFloor:
     self.floor = self.number div 100
 
 -------------------------------------------------------------------------------
--- DONE                            deriveIsOnTheLanding
+-- DONE OKKO                           deriveIsOnTheLanding
 -------------------------------------------------------------------------------
 -- Derivation of isOnTheLanding attribute.
 -- Easy
@@ -296,7 +296,7 @@ context Bathroom inv deriveIsOnTheLanding:
         self.bedroom->isEmpty()
 
 -------------------------------------------------------------------------------
--- TOCHECK                           deriveMaxNbOfFreeUnits
+-- DONE OKKO                          deriveMaxNbOfFreeUnits
 -------------------------------------------------------------------------------
 -- Derivation of maxNbOfFreeUnits attribute.
 -- Easy
@@ -307,7 +307,7 @@ context Residence inv deriveMaxNbOfFreeUnits:
     self.maxNbOfFreeUnits = self.bedrooms().nbOfSingleBeds->sum() + self.bedrooms().nbOfDoubleBeds->sum() * 2
 
 -------------------------------------------------------------------------------
--- DONE                              deriveNbOfUnits
+-- DONE OKKO                             deriveNbOfUnits
 -------------------------------------------------------------------------------
 -- Derivation of nbOfUnits attribute.
 -- Easy
@@ -333,7 +333,7 @@ context Bedroom inv deriveNbOfUnits:
 
 
 -------------------------------------------------------------------------------
--- DONE                                 deriveRate
+-- DONE OKKO                                deriveRate
 -------------------------------------------------------------------------------
 -- Derivation of the attribute rate.
 -- Easy
@@ -344,7 +344,7 @@ context Rent inv deriveRate:
     self.rate = self.rentedBedrooms.rate - self.discount
 
 -------------------------------------------------------------------------------
--- DONE                              domainPercentage
+-- DONE OKKO                              domainPercentage
 -------------------------------------------------------------------------------
 -- Domain of percentage attribute.
 -- Easy

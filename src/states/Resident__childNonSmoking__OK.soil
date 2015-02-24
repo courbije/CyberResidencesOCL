@@ -5,3 +5,14 @@
 
 -- open -q <BASE>.soil
 -- here some mutation code
+
+! create G279_paul : Resident
+! set G279_paul.name := 'Paul Bismut'
+! set G279_paul.age := 18
+! set G279_paul.gender := #male
+! set G279_paul.isSmoker := true
+! create G279_paulette : Resident
+! set G279_paulette.name := 'Paulette Bismut'
+! set G279_paulette.age := 10
+! set G279_paulette.gender := #male
+! set G279_paulette.isSmoker := false

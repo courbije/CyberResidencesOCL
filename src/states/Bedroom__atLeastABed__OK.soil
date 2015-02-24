@@ -5,3 +5,22 @@
 
 -- open -q <BASE>.soil
 -- here some mutation code
+
+
+! create G279_r1 : Residence
+! set G279_r1.name := 'ouest'
+! set G279_r1.floorMin := 1
+! set G279_r1.floorMax := 3
+! set G279_r1.category := #prestige
+! set G279_r1.maxNbOfFreeUnits := 10
+! set G279_r1.avgRate := 2
+! create G279_r1_306 : Bedroom
+! set G279_r1_306.number := 306
+! set G279_r1_306.floor := 3
+! set G279_r1_306.isOutOfOrder := false
+! set G279_r1_306.nbOfSingleBeds := 0
+! set G279_r1_306.nbOfDoubleBeds := 1
+! set G279_r1_306.rate := 20..0
+! set G279_r1_306.isNonSmoking := false
+! set G279_r1_306.nbOfUnits := 3
+! insert (G279_r1,G279_r1_306) into ContainsRooms

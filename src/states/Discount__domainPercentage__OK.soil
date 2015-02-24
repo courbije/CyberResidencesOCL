@@ -5,3 +5,38 @@
 
 -- open -q <BASE>.soil
 -- here some mutation code
+
+! create G279_r1 : Residence
+! set G279_r1.name := 'ouest'
+! set G279_r1.floorMin := 1
+! set G279_r1.floorMax := 3
+! set G279_r1.category := #prestige
+! set G279_r1.maxNbOfFreeUnits := 10
+! set G279_r1.avgRate := 2
+! create G279_r1_306 : Bedroom
+! set G279_r1_306.number := 306
+! set G279_r1_306.floor := 3
+! set G279_r1_306.isOutOfOrder := false
+! set G279_r1_306.nbOfSingleBeds := 1
+! set G279_r1_306.nbOfDoubleBeds := 1
+! set G279_r1_306.rate := 50
+! set G279_r1_306.isNonSmoking := false
+! set G279_r1_306.nbOfUnits := 3
+! create G279_paul : Tenant
+! set G279_paul.name := 'Paul Bismut'
+! set G279_paul.age := 26
+! set G279_paul.gender := #male
+! set G279_paul.isSmoker := true
+! set G279_paul.paidRate := 10
+! create G279_disc1 : Discount
+! set G279_disc1.label := 'cdiscount'
+! set G279_disc1.percentage := 30
+! create G279_disc2 : Discount
+! set G279_disc2.label := 'cdiscount'
+! set G279_disc2.percentage := 20
+! create G279_rent1 : Rent between (G279_r1_306,G279_paul)
+! set G279_rent1.discount := 25
+! set G279_rent1.rate := 25
+! insert (G279_r1,G279_r1_306) into ContainsRooms
+! insert (G279_rent1,G279_disc1) into HasDiscounts
+! insert (G279_rent1,G279_disc2) into HasDiscounts
