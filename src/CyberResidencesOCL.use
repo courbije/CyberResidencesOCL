@@ -140,17 +140,18 @@ constraints
 -- context Rent inv aboooConditions:
     -- A discount is given for bedrooms that have all bathrooms out of
     -- order. The label of this type of discount is 'BROOO50'. This
-    -- rule does not apply in economy residences.
+    -- rule does not apply in economy residences
 
 
 -------------------------------------------------------------------------------
--- TODO                               aboooPercentage
+-- DONE                               aboooPercentage
 -------------------------------------------------------------------------------
 -- Percentage of "ABOOO" discount according to residence category.
 -- Not Easy. Should work with the corresponding invariant 'xxxConditions'
-
--- context Discount inv aboooPercentage:
     -- ABOO discounts are equal to 50%.
+
+context Discount inv aboooPercentage:
+   self.label = 'BROO50' implies self.percentage = 50
 
 
 -------------------------------------------------------------------------------
@@ -412,16 +413,16 @@ context Resident inv marriageAntiReflexivity:
    self.consort <> self
 
 -------------------------------------------------------------------------------
--- TODO                            marriageInSameGroup
+-- DONE                            marriageInSameGroup
 -------------------------------------------------------------------------------
 -- Consorts in the same group.
 -- Medium
-
--- context Resident inv marriageInSameGroup:
     -- A resident and his or her consort occupies a room of the same
     -- group.
 
-
+context Resident inv marriageInSameGroup:
+   self.consort.occupiedRoom.tenant = self.occupiedRoom.tenant  
+      
 -------------------------------------------------------------------------------
 -- DONE                              marriageSymmetry
 -------------------------------------------------------------------------------
@@ -517,7 +518,7 @@ context Bathroom inv oooIfPrestige:
     -- residence.
 
 context Tenant inv rentInOneResidence:
-   self.rentedBedrooms->forall(rb1 | self.rentedBedrooms->forall(rb2 | rb2.residence = rb1.residence))
+   self.rentedBedrooms->forAll(rb1 | (self.rentedBedrooms->forAll(rb2 | rb2.residence = rb1.residence)))
 
 -------------------------------------------------------------------------------
 -- DONE                            sameNumberIfPrivate
@@ -549,26 +550,29 @@ context Tenant inv rentInOneResidence:
 
 
 -------------------------------------------------------------------------------
--- TODO                              sboooPercentage
+-- DONE                              sboooPercentage
 -------------------------------------------------------------------------------
 -- Percentage of "SBOOO" discount according to residence category.
 -- Not Easy. Should work with the corresponding invariant 'xxxConditions'
-
--- context Discount inv sboooPercentage:
     -- In premium residences, SBOO discounts are equal to 25%. For
     -- standard category the discount is of 10%.
 
+context Discount inv sboooPercentage:
+   self.label = 'SBOO' implies 
+   if self.rent.rentedBedrooms.residence.category = Category::standard then self.percentage = 10
+   else if self.rent.rentedBedrooms.residence.category = Category::premium then self.percentage = 25 else true endif endif
 
 -------------------------------------------------------------------------------
--- TODO                            smokingPremiumPolicy
+-- DONE                            smokingPremiumPolicy
 -------------------------------------------------------------------------------
 -- Smoking policy for premium residences.
 -- Not easy
-
--- context Bedroom inv smokingPremiumPolicy:
     -- In a premium residence a resident that specified that he or she
     -- is non smoker will never ever be place in a smoking room.
 
+context Bedroom inv smokingPremiumPolicy:
+   	self.residence.category = Category::premium implies self.occupants->forAll(x | not x.isSmoker implies self.isNonSmoking)
+      
 
 -------------------------------------------------------------------------------
 -- DONE                           smokingPrestigePolicy
@@ -582,13 +586,14 @@ context Bedroom inv smokingPrestigePolicy:
 
 
 -------------------------------------------------------------------------------
--- TODO                             tenantInRentedRoom
+-- DONE                             tenantInRentedRoom
 -------------------------------------------------------------------------------
 -- Room occupied by the tenant.
 -- Medium. 
-
--- context Tenant inv tenantInRentedRoom:
-    -- A tenant occupies one of the bedroom that he or she has rented.
+-- A tenant occupies one of the bedroom that he or she has rented.
+    
+context Tenant inv tenantInRentedRoom:
+   self.rentedBedrooms->exists(occupants->exists(y|y=self))
 
 
 -------------------------------------------------------------------------------
@@ -604,22 +609,25 @@ context Bedroom inv smokingPrestigePolicy:
 
 
 -------------------------------------------------------------------------------
--- TODO                              tutorInSameGroup
+-- DONE                              tutorInSameGroup
 -------------------------------------------------------------------------------
 -- Tutors and tutored in one group.
 -- Medium
-
--- context Resident inv tutorInSameGroup:
     -- The tutors of a resident are in the same group that this
     -- resident. In other words they are all in the same group of
     -- rooms.
+    
+context Resident inv tutorInSameGroup:
+   self.tutors->forAll(x | x.occupiedRoom.tenant = self.occupiedRoom.tenant)
 
 
 -------------------------------------------------------------------------------
--- TODO                    uniqueNumberApartForPrivateBathroom
+-- DONE                    uniqueNumberApartForPrivateBathroom
 -------------------------------------------------------------------------------
 -- Invariant on room numbering.
 -- Medium
-
--- context Residence inv uniqueNumberApartForPrivateBathroom:
     -- All rooms have a distinct number, except private bathrooms.
+    
+context Residence inv uniqueNumberApartForPrivateBathroom:
+   self.bathrooms().select(isOnTheLanding)->union(self.bedrooms())->isUnique(number)
+
