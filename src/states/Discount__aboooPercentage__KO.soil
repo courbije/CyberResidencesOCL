@@ -5,3 +5,10 @@
 
 -- open -q <BASE>.soil
 -- here some mutation code
+
+! create G279_disc1 : Discount
+! set G279_disc1.label := 'BROO50'
+! set G279_disc1.percentage := 51
+! create G279_disc2 : Discount
+! set G279_disc2.label := 'megadisc'
+! set G279_disc2.percentage := 60

@@ -5,3 +5,19 @@
 
 -- open -q <BASE>.soil
 -- here some mutation code
+
+! create G279_Bathroom1 : Bathroom
+! set G279_Bathroom1.number := 100
+! set G279_Bathroom1.floor := 1
+! set G279_Bathroom1.isOutOfOrder := false
+! set G279_Bathroom1.isOnTheLanding := false
+! create G279_Bedroom1 : Bedroom
+! set G279_Bedroom1.number := 100
+! set G279_Bedroom1.floor := 1
+! set G279_Bedroom1.isOutOfOrder := false
+! set G279_Bedroom1.nbOfSingleBeds := 1
+! set G279_Bedroom1.nbOfDoubleBeds := 0
+! set G279_Bedroom1.rate := 10
+! set G279_Bedroom1.isNonSmoking := false
+! set G279_Bedroom1.nbOfUnits := 10
+! insert (G279_Bathroom1,G279_Bedroom1) into IsInBedroom

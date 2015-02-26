@@ -6,13 +6,14 @@
 -- open -q <BASE>.soil
 -- here some mutation code
 
+
 ! create G279_r1 : Residence
 ! set G279_r1.name := 'ouest'
 ! set G279_r1.floorMin := 1
 ! set G279_r1.floorMax := 3
 ! set G279_r1.category := #prestige
-! set G279_r1.maxNbOfFreeUnits := 7
-! set G279_r1.avgRate := 2
+! set G279_r1.maxNbOfFreeUnits := 10
+! set G279_r1.avgRate := 50
 ! create G279_r1_306 : Bedroom
 ! set G279_r1_306.number := 306
 ! set G279_r1_306.floor := 3
@@ -26,10 +27,29 @@
 ! set G279_r1_307.number := 307
 ! set G279_r1_307.floor := 3
 ! set G279_r1_307.isOutOfOrder := false
-! set G279_r1_307.nbOfSingleBeds := 2
+! set G279_r1_307.nbOfSingleBeds := 1
 ! set G279_r1_307.nbOfDoubleBeds := 1
 ! set G279_r1_307.rate := 50
 ! set G279_r1_307.isNonSmoking := false
-! set G279_r1_307.nbOfUnits := 4
+! set G279_r1_307.nbOfUnits := 3
+! create G279_paul : Resident
+! set G279_paul.name := 'Paul Bismut'
+! set G279_paul.age := 26
+! set G279_paul.gender := #male
+! set G279_paul.isSmoker := true
+! create G279_paulette : Resident
+! set G279_paulette.name := 'Paul Bismut'
+! set G279_paulette.age := 26
+! set G279_paulette.gender := #male
+! set G279_paulette.isSmoker := true
+! create G279_pauline : Resident
+! set G279_pauline.name := 'Paul Bismut'
+! set G279_pauline.age := 10
+! set G279_pauline.gender := #male
+! set G279_pauline.isSmoker := true
 ! insert (G279_r1,G279_r1_306) into ContainsRooms
 ! insert (G279_r1,G279_r1_307) into ContainsRooms
+! insert (G279_pauline,G279_paul) into IsTutoredBy
+! insert (G279_r1_306,G279_paul) into IsOccupiedBy
+! insert (G279_r1_306,G279_pauline) into IsOccupiedBy
+! insert (G279_r1_306,G279_paulette) into IsOccupiedBy

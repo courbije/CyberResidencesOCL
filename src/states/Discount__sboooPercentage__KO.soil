@@ -5,3 +5,35 @@
 
 -- open -q <BASE>.soil
 -- here some mutation code
+
+! create G279_Residence1 : Residence
+! set G279_Residence1.name := 'Residence Pr'
+! set G279_Residence1.floorMin := 5
+! set G279_Residence1.floorMax := 2
+! set G279_Residence1.category := #standard
+! set G279_Residence1.maxNbOfFreeUnits := 5
+! set G279_Residence1.avgRate := 100
+! create G279_Bedroom1 : Bedroom
+! set G279_Bedroom1.number := 100
+! set G279_Bedroom1.floor := 1
+! set G279_Bedroom1.isOutOfOrder := false
+! set G279_Bedroom1.nbOfSingleBeds := 1
+! set G279_Bedroom1.nbOfDoubleBeds := 0
+! set G279_Bedroom1.rate := 100
+! set G279_Bedroom1.isNonSmoking := false
+! set G279_Bedroom1.nbOfUnits := 100
+! create G279_Tenant1 : Tenant
+! set G279_Tenant1.name := 'Jacques Frank'
+! set G279_Tenant1.age := 22
+! set G279_Tenant1.gender := #male
+! set G279_Tenant1.isSmoker := false
+! set G279_Tenant1.paidRate := 10
+! create G279_sboo : Discount
+! set G279_sboo.label := 'SBOO'
+! set G279_sboo.percentage := 25
+! create G279_Rent1 : Rent between (G279_Bedroom1,G279_Tenant1)
+! set G279_Rent1.discount := 10
+! set G279_Rent1.rate := 10
+! insert (G279_Residence1,G279_Bedroom1) into ContainsRooms
+! insert (G279_Rent1,G279_sboo) into HasDiscounts
+! insert (G279_Bedroom1,G279_Tenant1) into IsOccupiedBy
